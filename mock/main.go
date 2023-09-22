@@ -12,12 +12,14 @@ import (
 type ChatRes struct {
 	Lecture string `json:"lecture"`
 	Message string `json:"message"`
-	Url     string `json:"url"`
+	Id      string `json:"id"`
 }
 
 type LectureRes struct {
 	Name     string `json:"name"`
 	Abstract string `json:"abstract"`
+	Url      string `json:"url"`
+	Id       string `json:"id"`
 }
 
 const DemoMessage = `hello\
@@ -29,10 +31,14 @@ var DemoLecture = []LectureRes{
 	{
 		Name:     "Lecture 1",
 		Abstract: "This is the abstract for Lecture 1.",
+		Url:      "https://google.com",
+		Id:       "30405",
 	},
 	{
 		Name:     "Lecture 2",
 		Abstract: "This is the abstract for Lecture 2.",
+		Url:      "https://google.com",
+		Id:       "30406",
 	},
 }
 
@@ -51,8 +57,10 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "SSE not supported", http.StatusInternalServerError)
 				return
 			}
-			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 			chunkCh := make(chan string)
 			go chunkGenerator(r.Context(), chunkCh)
@@ -60,7 +68,6 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 			for chunk := range chunkCh {
 				data.Message = chunk
 				data.Lecture = "サンプル講義"
-				data.Url = "サンプルURL"
 				event, err := sseFormatter(data)
 				if err != nil {
 					fmt.Println(err)
@@ -76,11 +83,16 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 				flusher.Flush()
 			}
 		}
+	case http.MethodOptions:
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
 func chunkGenerator(c context.Context, chunkCh chan string) {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(time.Millisecond * 100)
 
 	msgLength := len(DemoMessage)
 	msgIndex := 0
