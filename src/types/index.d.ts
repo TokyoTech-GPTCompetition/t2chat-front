@@ -12,3 +12,8 @@ export type LectureTabContextType = {
   opened: string;
   setOpened: (opened: string | ((prev: string) => string)) => void;
 };
+
+export interface Book {
+  name: string;
+  author: string;
+}

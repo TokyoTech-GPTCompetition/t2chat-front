@@ -15,7 +15,7 @@ type ChatRes struct {
 	Id      string `json:"id"`
 }
 
-type LectureRes struct {
+type LectureRes []struct {
 	Name     string `json:"name"`
 	Abstract string `json:"abstract"`
 	Url      string `json:"url"`
@@ -31,10 +31,20 @@ type ChatReq struct {
 	ID string `json:"id"`
 }
 
+type BookReq struct {
+	ID string `json:"id"`
+}
+
+type BookRes []struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Author string `json:"author"`
+}
+
 const DemoMessage = `科目名実践的並列コンピューティング 概要現代の科学技術を支える重要技術である、並列計算・高性能計算の基礎についての講義・実習を行います。化学分野における分子シミュレーション、生物分野における蛋白質解析、応用数学分野における数理最適化問題など、スーパーコンピュータ等による大量の計算量・データ量を必要とする計算技術への要求が高まっています。本講義では、MPIやOpenMPなど高性能・並列計算のための標準的なプログラミング環境に加え、近年注目を集めているGPU・アクセラレータのためのプログラミング環境についても解説を行います。座学だけでなく、実際に東工大のペタスケールスパコンであるTSUBAMEを用いた実習を行います。 この講義のキーワードは,並列計算, 高性能計算, マルチコア, MPI, OpenMP, GPGPUです．
 `
 
-var DemoLecture = []LectureRes{
+var DemoLecture = LectureRes{
 	{
 		Name:     "問題解決と意思決定",
 		Abstract: "本講義では，システムの解析や設計において必要となる最適化のモデルと方法論について学びます．具体的には，線形計画モデル，線形計画法，非線形計画モデル，非線形計画法，多目的最適化手法，整数計画法，組合せ最適化手法など，最適化のためのモデル化と方法論について講義します．本講義を履修することによって，システムの解析や設計において必要となる最適化に関する知識を習得し，実世界の問題に応用できるようになることを到達目標とします． この講義のキーワードは,線形計画，非線形計画，多目的最適化，整数計画，組合せ最適化です．",
@@ -81,9 +91,57 @@ var DemoReason = map[string]Reason{
 	},
 }
 
+var DemoBook = map[string]BookRes{
+	"30405": {
+		{
+			ID:     "30405",
+			Name:   "データ分析・活用のためのしくみと考えかた",
+			Author: "高間康史",
+		},
+		{
+			ID:     "30405",
+			Name:   "理論と現象をつなぐ論理",
+			Author: "木嶋恭一, 岸眞理子",
+		},
+		{
+			ID:     "30405",
+			Name:   "課題解決のための情報リテラシー",
+			Author: "美濃輪正行, 谷口郁生",
+		},
+		{
+			ID:     "30405",
+			Name:   "東京大学工学教程編纂委員会編",
+			Author: "萩谷昌己",
+		},
+	},
+	"30406": {
+		{
+			ID:     "30406",
+			Name:   "情報理論のエッセンス",
+			Author: "平田廣則",
+		},
+		{
+			ID:     "30406",
+			Name:   "情報理論の基礎. 第2版",
+			Author: "小沢一雅",
+		},
+		{
+			ID:     "30406",
+			Name:   "基礎から学ぶ情報理論",
+			Author: "中村篤祥, 喜田拓也, 湊真一共",
+		},
+		{
+			ID:     "30406",
+			Name:   "課題解決のための情報リテラシー",
+			Author: "美濃輪正行, 谷口郁生",
+		},
+	},
+}
+
 func main() {
 	http.HandleFunc("/chat", chatHandler)
 	http.HandleFunc("/lecture", lectureHandler)
+	http.HandleFunc("/book", bookHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -94,12 +152,10 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 		{
 			var reqData ChatReq
 			if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
-				fmt.Println("called")
 				http.Error(w, "Invalid request body", http.StatusBadRequest)
 				return
 			}
-			id := reqData.ID
-			fmt.Printf("%v\n", id)
+
 			flusher, ok := w.(http.Flusher)
 			if !ok {
 				http.Error(w, "SSE not supported", http.StatusInternalServerError)
@@ -110,8 +166,10 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
+			id := reqData.ID
 			chunkCh := make(chan string)
 			go chunkGenerator(r.Context(), chunkCh, DemoReason[id].Reason)
+
 			var data ChatRes
 			for chunk := range chunkCh {
 				data.Message = chunk
@@ -121,7 +179,7 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 					fmt.Println(err)
 					break
 				}
-				fmt.Printf("%v\n", chunk)
+
 				_, err = fmt.Fprint(w, event)
 				if err != nil {
 					fmt.Println(err)
@@ -183,6 +241,25 @@ func lectureHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		time.Sleep(9 * time.Second)
 		if err := json.NewEncoder(w).Encode(DemoLecture); err != nil {
+			http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func bookHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		var reqData BookReq
+		if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		time.Sleep(4 * time.Second)
+
+		if err := json.NewEncoder(w).Encode(DemoBook[reqData.ID]); err != nil {
 			http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
 			return
 		}

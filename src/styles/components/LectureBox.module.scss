@@ -104,3 +104,16 @@
         padding-left: 1.3rem;
     }
   }
+
+.button_hov {
+    background-color: white;
+    border: 0.07rem solid gray;
+    height: 80%;
+    cursor: pointer;
+    border-radius: 0.2rem;
+    width: 3rem;
+}
+
+.button_hov:hover {
+    border-color: rgb(0, 186, 186);
+}

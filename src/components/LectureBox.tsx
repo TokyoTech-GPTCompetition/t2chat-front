@@ -1,4 +1,4 @@
-import { Lecture, LectureTabContextType } from "@/types";
+import { Book, Lecture, LectureTabContextType } from "@/types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import styles from "@/styles/components/LectureBox.module.scss";
 import { LectureContext } from "./Layout";
@@ -58,8 +58,10 @@ const LectureTab = ({
   setOpened?: (opened: string | ((prev: string) => string)) => void;
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isBookLoading, setIsBookLoading] = useState<boolean>(false);
   const [responseData, setResponseData] = useState<string>("");
   const [reason, setReason] = useState<string>("");
+  const [book, setBook] = useState<Array<Book>>([]);
   console.log(typeof reason);
   const fetchData = async () => {
     try {
@@ -110,13 +112,65 @@ const LectureTab = ({
       setIsLoading(false);
     }
   };
+
+  const fetchData2 = async () => {
+    setIsBookLoading(true);
+    const requestData = {
+      id: lecture.id, // ここにIDの値を設定
+    };
+    console.log(JSON.stringify(requestData));
+    const response = await fetch("http://localhost:8080/book", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+    });
+
+    const data: Book[] = await response.json();
+    setIsBookLoading(false);
+    setBook(data);
+  };
   return (
     <div className={`${styles.l_lecturetab} ${styles.d_lecturetab} tab`}>
-      <h2>
-        <a href={lecture.url}>{lecture.name}</a>
-      </h2>
-      <button onClick={fetchData}>理由</button>
-      <button>本</button>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <h2>
+          <a href={lecture.url}>{lecture.name}</a>
+        </h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "0.5rem",
+            alignItems: "center",
+          }}
+        >
+          <button onClick={fetchData} className={`${styles.button_hov}`}>
+            理由
+          </button>
+          <button onClick={fetchData2} className={`${styles.button_hov}`}>
+            本
+          </button>
+        </div>
+      </div>
+      {isBookLoading && "loading..."}
+      {book.length >= 1 && (
+        <div
+          style={{
+            paddingTop: "1rem",
+            paddingBottom: "1rem",
+            display: "grid",
+            gap: "0.5rem",
+          }}
+        >
+          <h4>おすすめの本</h4>
+          {book.map((info) => (
+            <BookCard info={info} key={info.name} />
+          ))}
+        </div>
+      )}
       <p style={{ paddingBottom: "1.5rem" }}>{lecture.abstract}</p>
       {/*<p dangerouslySetInnerHTML={{ __html: reason }}></p>*/}
       <ReactMarkdown
@@ -125,6 +179,25 @@ const LectureTab = ({
       >
         {reason}
       </ReactMarkdown>
+    </div>
+  );
+};
+
+const BookCard = ({ info }: { info: Book }) => {
+  return (
+    <div style={{ border: "0.03rem solid gray" }}>
+      <div>タイトル: {info.name}</div>
+      <div>著: {info.author}</div>
+      <div>
+        <a
+          href={"https://topics.libra.titech.ac.jp/xc/search/" + info.name}
+          style={{ color: "blue", textDecorationLine: "underline" }}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          図書館で調べる
+        </a>
+      </div>
     </div>
   );
 };
