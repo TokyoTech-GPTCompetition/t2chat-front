@@ -1,41 +1,41 @@
 import { Lecture, LectureTabContextType } from "@/types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import styles from "@/styles/components/LectureBox.module.scss";
+import { LectureContext } from "./Layout";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const LectureBox = ({ children }: { children?: React.ReactNode }) => {
-  const [lectures, setLectures] = useState<Array<Lecture>>([]);
+  const { isLoading, setIsLoading, lectures, setLectures } =
+    useContext(LectureContext);
   const [opened, setOpened] = useState<string>("");
-  useEffect(() => {
-    fetch("http://localhost:8080/lecture", { method: "POST" })
-      .then((res) => {
-        return res.json();
-      })
-      .then((data: Array<Lecture>) => {
-        setLectures(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
 
   return (
     <div className={`${styles.l_lecturebox__wrapper}`}>
       <h1>Lecture List</h1>
-      <ul className={`${styles.l_lecturelist} ${styles.d_lecturelist}`}>
-        {lectures.map((lecture: Lecture, index: number) => (
-          <li
-            key={index}
-            className={`${styles.d_lecturelist__unit}`}
-            onClick={() => {
-              setOpened(lecture.id);
-            }}
-          >
-            <h2>{lecture.name}</h2>
-            <p>{lecture.abstract}</p>
-            {opened === lecture.id && <LectureTab lecture={lecture} />}
-          </li>
-        ))}
-      </ul>
+      {isLoading ? (
+        <div className={`${styles.loadingIndicator}`}>Loading...</div>
+      ) : (
+        <ul className={`${styles.l_lecturelist} ${styles.d_lecturelist}`}>
+          {lectures.map((lecture: Lecture, index: number) => (
+            <li
+              key={index}
+              className={`${styles.d_lecturelist__unit}`}
+              onClick={() => {
+                setOpened(lecture.id);
+              }}
+            >
+              <h2>{lecture.name}</h2>
+              <hr />
+              <p className={`${styles.d_lecturelist__abstract}`}>
+                {lecture.abstract}
+              </p>
+              {opened === lecture.id && <LectureTab lecture={lecture} />}
+            </li>
+          ))}
+        </ul>
+      )}
+
       {opened !== "" && (
         <div
           className={`${styles.l_tabbackground}`}
@@ -60,23 +60,29 @@ const LectureTab = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [responseData, setResponseData] = useState<string>("");
   const [reason, setReason] = useState<string>("");
+  console.log(typeof reason);
   const fetchData = async () => {
     try {
       setIsLoading(true);
 
+      const requestData = {
+        id: lecture.id, // ここにIDの値を設定
+      };
+      console.log(JSON.stringify(requestData));
       // APIを呼び出すコードをここに追加
       const response = await fetch("http://localhost:8080/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(requestData),
       });
       const data = response.body;
       if (data === null) {
         return;
       }
       const reader = data.getReader();
-      const decoder = new TextDecoder();
+      const decoder = new TextDecoder("UTF-8");
       let done = false;
       let result = "";
 
@@ -89,7 +95,8 @@ const LectureTab = ({
         if (tmp !== undefined) {
           jsonData = JSON.parse(tmp);
           if (jsonData["message"] === "\n") {
-            result += "<br />";
+            // result += "<br />";
+            result += jsonData["message"];
           } else {
             result += jsonData["message"];
           }
@@ -110,8 +117,14 @@ const LectureTab = ({
       </h2>
       <button onClick={fetchData}>理由</button>
       <button>本</button>
-      <p>{lecture.abstract}</p>
-      <p dangerouslySetInnerHTML={{ __html: reason }}></p>
+      <p style={{ paddingBottom: "1.5rem" }}>{lecture.abstract}</p>
+      {/*<p dangerouslySetInnerHTML={{ __html: reason }}></p>*/}
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        className={`${styles.markdown}`}
+      >
+        {reason}
+      </ReactMarkdown>
     </div>
   );
 };

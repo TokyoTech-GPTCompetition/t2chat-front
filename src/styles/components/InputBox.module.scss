@@ -1,22 +1,21 @@
-.l_input__wrapper {
-    position: absolute;
-    bottom: 1rem;
+.l_posttextarea__wrapper {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    background-color: #f5f5f5;
-    padding: 10px;
-    border-radius: 20px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    left:  5%;
+    gap: 1rem;
 }
 
-.input {
-    flex-grow: 1;
-    padding: 10px;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 16px;
+.d_posttextarea {
+    resize: none;
+    border: 0.01rem solid rgba(128, 128, 128, 0.526);
+    border-radius: 0.3rem;
+    overflow: scroll;
+    font-size: 1rem;
+}
+
+.l_posttextarea {
+    width: 80%;
+    height: 44px;
+    padding-bottom: 10px;
+    padding-top: 10px;
 }

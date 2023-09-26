@@ -1,20 +1,42 @@
 .l_lecturebox__wrapper {
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
 
 .l_lecturelist {
-    padding-left: 1rem;
+    width: 90%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
 }
 
 .d_lecturelist__unit {
     list-style: none;
+    background-color: wheat;
+    padding: 1rem;
+    cursor: pointer;
+    border: 0.05rem solid gray;
+    border-radius: 0.1rem;
+    &:hover {
+        border-color: aqua;
+    }
 }
 
 .l_lecturetab {
+    cursor: auto;
     position: absolute;
-    width: 90%;
-    left: 5%;
+    width: 97%;
+    height: auto;
+    left: 1.5%;
+    top: 10vh;
     z-index: 2;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    max-height: 80vh;
+    overflow: scroll;
 
 }
 
@@ -33,3 +55,52 @@
     top: 0;
     left: 0;
 }
+
+.d_lecturelist__abstract {
+    display: -webkit-box; /* 必要なプレフィックスがある場合に使用 */
+    -webkit-line-clamp: 3; /* 表示する行数を制限（3行分まで表示） */
+    -webkit-box-orient: vertical; /* テキストを垂直に表示 */
+    overflow: hidden; /* テキストのオーバーフローを隠す */
+}
+
+/* InputBox.module.scss */
+.loadingIndicator {
+    // Add styling for your loading indicator
+    font-size: 14px;
+    animation: spin 2s infinite linear; // Add a simple spin animation
+    position: absolute;
+    top: 6rem;
+  }
+  
+  @keyframes spin {
+    0% {
+        color: black;
+      transform: rotate(0deg);
+    }
+    50% {
+        color: blue;
+      transform: rotate(180deg);
+    }
+    to {
+        color: black;
+      transform: rotate(360deg);
+    }
+  }
+
+  .markdown {
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    * {
+        font-size: 0.8rem;
+    }
+
+    ul {
+        padding-left: 1rem;
+    }
+
+    ol {
+        padding-left: 1.3rem;
+    }
+  }
