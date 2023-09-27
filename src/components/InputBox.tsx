@@ -16,7 +16,21 @@ const InputBox = () => {
   ) => {
     console.log("Click");
     setIsLoading(true); // Set isLoading to true when making the API request
-    fetch("http://localhost:8080/lecture", { method: "POST" })
+    var id = 3;
+    if (!message.includes("最適化")) {
+      id = 5;
+    }
+    const requestData = {
+      id: id.toString(), // ここにIDの値を設定
+    };
+    console.log(JSON.stringify(requestData));
+    fetch("http://localhost:8080/lecture", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestData),
+    })
       .then((res) => {
         return res.json();
       })
@@ -56,7 +70,7 @@ const InputBox = () => {
     handleSubmit(e);
   };
   return (
-    <form style={{ position: "absolute", bottom: "1.5rem", width: "100%" }}>
+    <form style={{ position: "fixed", bottom: "1.5rem", width: "100%" }}>
       <div className={`${styles.l_posttextarea__wrapper}`}>
         <textarea
           value={message}

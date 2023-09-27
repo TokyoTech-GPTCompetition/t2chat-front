@@ -4,6 +4,7 @@ import styles from "@/styles/components/LectureBox.module.scss";
 import { LectureContext } from "./Layout";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Image from "next/image";
 
 const LectureBox = ({ children }: { children?: React.ReactNode }) => {
   const { isLoading, setIsLoading, lectures, setLectures } =
@@ -11,10 +12,20 @@ const LectureBox = ({ children }: { children?: React.ReactNode }) => {
   const [opened, setOpened] = useState<string>("");
 
   return (
-    <div className={`${styles.l_lecturebox__wrapper}`}>
+    <div
+      className={`${styles.l_lecturebox__wrapper}`}
+      style={{ paddingBottom: "5rem" }}
+    >
       <h1>Lecture List</h1>
       {isLoading ? (
-        <div className={`${styles.loadingIndicator}`}>Loading...</div>
+        <div className={`${styles.loadingIndicator}`}>
+          <Image
+            src="/arrow_transparent.png"
+            alt="arrow"
+            width={50}
+            height={50}
+          />
+        </div>
       ) : (
         <ul className={`${styles.l_lecturelist} ${styles.d_lecturelist}`}>
           {lectures.map((lecture: Lecture, index: number) => (
@@ -155,6 +166,7 @@ const LectureTab = ({
           </button>
         </div>
       </div>
+      <hr />
       {isBookLoading && "loading..."}
       {book.length >= 1 && (
         <div

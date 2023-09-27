@@ -1,20 +1,26 @@
+import Image from "next/image";
+
 export const Header = () => {
   return (
     <header
       style={{
         width: "100%",
-        backgroundColor: "#454545",
+        backgroundColor: "rgb(203 203 203)",
         position: "fixed",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        paddingTop: "0.5rem",
+        paddingBottom: "0.5rem",
       }}
     >
-      <h2
-        style={{
-          color: "white",
-          textAlign: "center",
-        }}
-      >
-        T2chat
-      </h2>
+      <Image
+        src="/connpath-logo.png"
+        height={40}
+        width={300}
+        alt="logo"
+        style={{ objectFit: "contain" }}
+      />
     </header>
   );
 };
